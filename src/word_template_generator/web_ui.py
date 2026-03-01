@@ -26,7 +26,7 @@ class BuildOnePayload(BaseModel):
 
 def _pick_workspace_native() -> str | None:
     if sys.platform == "darwin":
-        script = 'POSIX path of (choose folder with prompt "Выберите папку AOSR workspace")'
+        script = 'POSIX path of (choose folder with prompt "Выберите папку workspace проекта")'
         proc = subprocess.run(
             ["osascript", "-e", script],
             capture_output=True,
@@ -42,7 +42,7 @@ def _pick_workspace_native() -> str | None:
         powershell_script = (
             "Add-Type -AssemblyName System.Windows.Forms; "
             "$d=New-Object System.Windows.Forms.FolderBrowserDialog; "
-            "$d.Description='Выберите папку AOSR workspace'; "
+            "$d.Description='Выберите папку workspace проекта'; "
             "$r=$d.ShowDialog(); "
             "if ($r -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.SelectedPath }"
         )
@@ -66,7 +66,7 @@ def _html() -> str:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AOSR Генератор</title>
+  <title>Word Template Generator</title>
   <style>
     body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #f4f6f8; }
     .wrap { max-width: 980px; margin: 24px auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
@@ -85,7 +85,7 @@ def _html() -> str:
 </head>
 <body>
   <div class="wrap">
-    <h2 style="margin-top: 0;">AOSR Генератор</h2>
+    <h2 style="margin-top: 0;">Word Template Generator</h2>
     <div class="hint">Локальный режим: укажите путь к workspace на этом компьютере.</div>
 
     <div class="row">
@@ -118,7 +118,7 @@ def _html() -> str:
   </div>
 
   <script>
-    const RECENT_KEY = 'aosr.recent_workspaces.v1';
+    const RECENT_KEY = 'word_template_generator.recent_workspaces.v1';
     const RECENT_MAX = 8;
 
     function log(line) {
@@ -299,7 +299,7 @@ def _html() -> str:
 
 
 def _get_app() -> FastAPI:
-    app = FastAPI(title="AOSR Генератор")
+    app = FastAPI(title="Word Template Generator")
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:

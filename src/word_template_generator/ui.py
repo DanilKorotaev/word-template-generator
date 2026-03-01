@@ -16,7 +16,7 @@ def run_ui() -> None:
         ) from exc
 
     root = tk.Tk()
-    root.title("AOSR Generator")
+    root.title("Word Template Generator")
     root.geometry("820x500")
 
     workspace_var = tk.StringVar()
@@ -57,11 +57,11 @@ def run_ui() -> None:
     def generate_all() -> None:
         ws = workspace_var.get().strip()
         if not ws:
-            messagebox.showwarning("AOSR Generator", "Select workspace first.")
+            messagebox.showwarning("Word Template Generator", "Select workspace first.")
             return
         cfg, found = load_workspace(Path(ws))
         if not found:
-            messagebox.showwarning("AOSR Generator", "No act markdown files found.")
+            messagebox.showwarning("Word Template Generator", "No act markdown files found.")
             return
         append_status("[RUN] Generating all acts...")
         count = 0
@@ -80,11 +80,11 @@ def run_ui() -> None:
     def generate_selected() -> None:
         ws = workspace_var.get().strip()
         if not ws:
-            messagebox.showwarning("AOSR Generator", "Select workspace first.")
+            messagebox.showwarning("Word Template Generator", "Select workspace first.")
             return
         selected = listbox.curselection()
         if not selected:
-            messagebox.showwarning("AOSR Generator", "Select one act in the list.")
+            messagebox.showwarning("Word Template Generator", "Select one act in the list.")
             return
         act = acts_list[selected[0]]
         cfg, _ = load_workspace(Path(ws))

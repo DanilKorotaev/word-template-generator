@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -e .
 
 EXPOSE 8080
 
-CMD ["aosr-gen", "web-ui", "--host", "0.0.0.0", "--port", "8080", "--no-open"]
+CMD ["word-gen", "web-ui", "--host", "0.0.0.0", "--port", "8080", "--no-open"]

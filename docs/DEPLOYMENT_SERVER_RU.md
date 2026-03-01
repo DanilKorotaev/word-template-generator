@@ -23,7 +23,7 @@
 ```mermaid
 flowchart LR
     internet[Internet] --> nginx[NginxHost443]
-    nginx --> app[AOSRFastAPIContainer]
+    nginx --> app[WordTemplateFastAPIContainer]
     app --> serverFs[ServerWorkspaceVolume]
 ```
 
@@ -32,7 +32,7 @@ flowchart LR
 - `Dockerfile`
 - `docker-compose.yml`
 - `docker-compose.prod.yml`
-- `nginx/aosr-generator.conf`
+- `nginx/word-template-generator.conf`
 
 Это инфраструктурный baseline для дальнейших итераций.
 

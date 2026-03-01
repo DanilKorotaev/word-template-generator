@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aosr-template-generator"
+name = "word-template-generator"
 version = "0.1.0"
-description = "DOCX generator for AOСР acts from Markdown files"
+description = "Local-first DOCX generator for Word templates and markdown acts"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -23,5 +23,5 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [project.scripts]
-aosr-gen = "aosr_generator.cli:main"
+word-gen = "word_template_generator.cli:main"
 

@@ -4,15 +4,15 @@
 
 ## Архитектура
 
-- `src/aosr_generator/generator.py` — загрузка workspace и генерация DOCX.
-- `src/aosr_generator/cli.py` — CLI-команды (`ws-build-*`, `ws-validate`, `web-ui`, `ui`).
-- `src/aosr_generator/web_ui.py` — FastAPI + встроенный HTML/JS интерфейс.
-- `src/aosr_generator/ui.py` — Tkinter UI.
+- `src/word_template_generator/cli.py` — CLI-команды и точка входа.
+- `src/word_template_generator/generator.py` — ядро загрузки workspace и генерации DOCX.
+- `src/word_template_generator/web_ui.py` — FastAPI + встроенный HTML/JS интерфейс.
+- `src/word_template_generator/ui.py` — Tkinter UI.
 
 ## Локальная разработка
 
 ```bash
-cd "/Users/danilkorotaev/Nextcloud/ПТО/word-template-generator"
+cd "/path/to/word-template-generator"
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
@@ -22,19 +22,19 @@ pip install -e .
 
 ```bash
 # Web UI (рекомендуется)
-aosr-gen web-ui
+word-gen web-ui
 
 # Web UI на конкретном порту
-aosr-gen web-ui --host 127.0.0.1 --port 8080 --no-open
+word-gen web-ui --host 127.0.0.1 --port 8080 --no-open
 
 # Сгенерировать все акты
-aosr-gen ws-build-all --workspace-dir "/abs/path/to/workspace"
+word-gen ws-build-all --workspace-dir "/abs/path/to/workspace"
 
 # Сгенерировать один акт
-aosr-gen ws-build-one act-001 --workspace-dir "/abs/path/to/workspace"
+word-gen ws-build-one act-001 --workspace-dir "/abs/path/to/workspace"
 
 # Валидация
-aosr-gen ws-validate --workspace-dir "/abs/path/to/workspace"
+word-gen ws-validate --workspace-dir "/abs/path/to/workspace"
 ```
 
 ## Диагностика

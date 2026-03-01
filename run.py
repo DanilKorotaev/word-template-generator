@@ -1,4 +1,4 @@
-from aosr_generator.cli import main
+from word_template_generator.cli import main
 
 
 if __name__ == "__main__":

@@ -21,5 +21,5 @@ echo "[RUN] Установка/обновление зависимостей..."
 python -m pip install --upgrade pip >/dev/null
 python -m pip install -e .
 
-echo "[RUN] Запуск AOSR Web UI..."
-aosr-gen web-ui
+echo "[RUN] Запуск Word Template Generator Web UI..."
+word-gen web-ui

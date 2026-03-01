@@ -1,0 +1,2 @@
+"""Word Template Generator package."""
+

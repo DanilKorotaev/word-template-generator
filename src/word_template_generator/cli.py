@@ -10,7 +10,7 @@ from .generator import (
     load_workspace,
 )
 
-app = typer.Typer(help="AOСР DOCX template generator.")
+app = typer.Typer(help="Word Template Generator (DOCX from markdown).")
 
 
 @app.command("build-all")

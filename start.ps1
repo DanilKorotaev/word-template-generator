@@ -20,5 +20,5 @@ Write-Host "[RUN] Установка/обновление зависимосте
 python -m pip install --upgrade pip | Out-Null
 python -m pip install -e .
 
-Write-Host "[RUN] Запуск AOSR Web UI..."
-aosr-gen web-ui
+Write-Host "[RUN] Запуск Word Template Generator Web UI..."
+word-gen web-ui
