@@ -7,6 +7,7 @@
 - `DEV_GUIDE_RU.md` — техническое руководство для поддержки и разработки.
 - `RELEASE_CHECKLIST_RU.md` — чеклист перед релизом.
 - `GIT_FLOW_RU.md` — правила ветвления и релизов по GitFlow.
+- `WINDOWS_SETUP_RU.md` — подробная установка и запуск на Windows.
 - `DEPLOYMENT_SERVER_RU.md` — опциональный серверный деплой (future-track).
 
 ## Быстрый старт разработки

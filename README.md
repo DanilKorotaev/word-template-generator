@@ -35,6 +35,9 @@ pip install -e .
 word-gen web-ui
 ```
 
+Полная инструкция для Windows:
+- `docs/WINDOWS_SETUP_RU.md`
+
 ## One-click запуск для не-IT пользователя
 
 - `start.command` (macOS): запуск в один клик через Finder.

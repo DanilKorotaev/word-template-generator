@@ -15,11 +15,20 @@ if [ ! -d ".venv" ]; then
   python3 -m venv .venv
 fi
 
-source .venv/bin/activate
+VENV_PY=".venv/bin/python3"
+if [ ! -x "$VENV_PY" ]; then
+  VENV_PY=".venv/bin/python"
+fi
+
+if [ ! -x "$VENV_PY" ]; then
+  echo "[ERR] Не найден Python внутри .venv. Пересоздайте окружение."
+  read -r -p "Нажмите Enter для выхода..."
+  exit 1
+fi
 
 echo "[RUN] Установка/обновление зависимостей..."
-python -m pip install --upgrade pip >/dev/null
-python -m pip install -e .
+"$VENV_PY" -m pip install --upgrade pip >/dev/null
+"$VENV_PY" -m pip install -e .
 
 echo "[RUN] Запуск Word Template Generator Web UI..."
-word-gen web-ui
+"$VENV_PY" -m word_template_generator.cli web-ui
