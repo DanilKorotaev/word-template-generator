@@ -1,0 +1,5 @@
+docxtpl
+typer
+PyYAML
+fastapi
+uvicorn

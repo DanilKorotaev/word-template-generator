@@ -1,0 +1,2 @@
+"""AOСР DOCX generator package."""
+

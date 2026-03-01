@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aosr-template-generator"
+version = "0.1.0"
+description = "DOCX generator for AOСР acts from Markdown files"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "docxtpl",
+  "typer",
+  "PyYAML",
+  "fastapi",
+  "uvicorn",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+aosr-gen = "aosr_generator.cli:main"
+

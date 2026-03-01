@@ -1,0 +1,4 @@
+services:
+  aosr-web:
+    ports:
+      - "127.0.0.1:${AOSR_PORT:-8080}:8080"

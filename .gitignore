@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+output/*.docx
+.validation_tmp/
+.DS_Store
+*.swp
+*.egg-info/
+
