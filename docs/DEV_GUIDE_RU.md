@@ -25,7 +25,7 @@ pip install -e .
 word-gen web-ui
 
 # Web UI на конкретном порту
-word-gen web-ui --host 127.0.0.1 --port 8080 --no-open
+word-gen web-ui --host 127.0.0.1 --port 8090 --no-open
 
 # Сгенерировать все акты
 word-gen ws-build-all --workspace-dir "/abs/path/to/workspace"
@@ -42,6 +42,8 @@ word-gen ws-validate --workspace-dir "/abs/path/to/workspace"
 - Проверить формат markdown: фронтматтер должен начинаться с `---`.
 - Проверить шаблон: `template.docx` должен быть доступен в workspace.
 - Для missing-полей сверять переменные в DOCX и `fields`/`поля`.
+- Токены `[[...]]` могут ссылаться на любые строковые поля контекста (не только `number`).
+- Если `output_name` не задан, используется `stem` имени markdown-файла акта.
 
 ## Local-first ограничения
 
