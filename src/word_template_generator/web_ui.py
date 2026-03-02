@@ -25,6 +25,21 @@ class BuildOnePayload(BaseModel):
 
 
 def _pick_workspace_native() -> str | None:
+    # Try Tkinter dialog first: works on local desktop on macOS/Windows/Linux.
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        selected = filedialog.askdirectory(title="Выберите папку workspace проекта")
+        root.destroy()
+        if selected:
+            return selected
+    except Exception:  # noqa: BLE001
+        pass
+
     if sys.platform == "darwin":
         script = 'POSIX path of (choose folder with prompt "Выберите папку workspace проекта")'
         proc = subprocess.run(
@@ -121,6 +136,22 @@ def _html() -> str:
     const RECENT_KEY = 'word_template_generator.recent_workspaces.v1';
     const RECENT_MAX = 8;
 
+    function normalizeWorkspacePath(rawValue) {
+      let value = (rawValue || '').trim();
+      if (!value) return '';
+
+      // Remove wrapping quotes if user pasted a quoted path.
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1).trim();
+      }
+
+      // Normalize Windows drive paths with mixed separators.
+      if (/^[A-Za-z]:[\\/]/.test(value)) {
+        value = value.replaceAll('/', '\\\\');
+      }
+      return value;
+    }
+
     function log(line) {
       const el = document.getElementById('log');
       el.value += line + "\\n";
@@ -128,7 +159,10 @@ def _html() -> str:
     }
 
     function ws() {
-      return document.getElementById('workspace').value.trim();
+      const el = document.getElementById('workspace');
+      const normalized = normalizeWorkspacePath(el.value);
+      el.value = normalized;
+      return normalized;
     }
 
     function readRecent() {
