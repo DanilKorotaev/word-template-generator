@@ -4,7 +4,7 @@ from pathlib import Path
 
 import typer
 
-from .generator import (
+from .core import (
     build_one,
     load_project,
     load_workspace,
@@ -245,7 +245,7 @@ Optional:
 @app.command("ui")
 def launch_ui() -> None:
     try:
-        from .ui import run_ui
+        from .desktop.tk_app import run_ui
 
         run_ui()
     except RuntimeError as exc:
@@ -258,11 +258,11 @@ def launch_ui() -> None:
 @app.command("web-ui")
 def launch_web_ui(
     host: str = typer.Option("127.0.0.1", "--host"),
-    port: int = typer.Option(0, "--port", help="0 means choose a free port"),
+    port: int = typer.Option(8090, "--port", help="Port for local Web UI (default: 8090)"),
     no_open: bool = typer.Option(False, "--no-open", help="Do not auto-open browser"),
 ) -> None:
     try:
-        from .web_ui import run_web_ui
+        from .web.server import run_web_ui
     except ModuleNotFoundError as exc:
         typer.echo("[ERR] Web UI dependencies are missing.")
         typer.echo("[TIP] Reinstall project: pip install -e .")
@@ -270,7 +270,12 @@ def launch_web_ui(
 
     typer.echo("[INFO] Web UI запускается в local-first режиме.")
     typer.echo("[INFO] Workspace должен быть доступен на том же компьютере, где запущен Python.")
-    run_web_ui(host=host, port=None if port == 0 else port, open_browser=not no_open)
+    try:
+        run_web_ui(host=host, port=port, open_browser=not no_open)
+    except RuntimeError as exc:
+        typer.echo(f"[ERR] {exc}")
+        typer.echo("[TIP] Usually you already have one running app on the same port.")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

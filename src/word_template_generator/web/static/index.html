@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Word Template Generator</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <h2>Word Template Generator</h2>
+    <div class="hint">Локальный режим: укажите путь к workspace на этом компьютере.</div>
+
+    <div class="row row-wrap">
+      <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
+      <button class="secondary" onclick="pickFolder()">Выбрать папку...</button>
+      <button class="secondary" onclick="loadActs()">Загрузить акты</button>
+      <button class="secondary" onclick="validateWs()">Проверить</button>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom: 6px;">
+        <strong>Недавние проекты</strong>
+      </div>
+      <div class="row row-wrap">
+        <select id="recent" class="grow recent-select"></select>
+        <div class="actions">
+          <button class="secondary" onclick="useRecent()">Использовать</button>
+          <button class="secondary" onclick="removeRecent()">Удалить</button>
+          <button class="secondary" onclick="clearRecent()">Очистить все</button>
+        </div>
+      </div>
+      <div class="muted">Пути сохраняются только в этом браузере (localStorage).</div>
+    </div>
+
+    <div class="row row-wrap">
+      <button onclick="buildAll()">Сгенерировать все</button>
+      <select id="acts" class="grow"></select>
+      <button onclick="buildOne()">Сгенерировать выбранный</button>
+    </div>
+
+    <textarea id="log" readonly></textarea>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
+
