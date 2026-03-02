@@ -25,6 +25,7 @@ h2 {
 .row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
 .row-wrap { flex-wrap: wrap; }
 input, select, button, textarea { font: inherit; }
+label { font-size: 13px; color: #334155; min-width: 140px; }
 input, select {
   padding: 10px 12px;
   border: 1px solid #cfd4dc;
@@ -79,4 +80,52 @@ textarea {
 .muted { color: #64748b; font-size: 12px; }
 .recent-select { flex: 1 1 520px; min-width: 280px; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.section-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+.log-header {
+  justify-content: space-between;
+}
+#outputDirSelect {
+  flex: 0 0 220px;
+}
+
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 240px;
+  max-width: 420px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.2);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(-8px);
+  animation: toast-in 0.18s ease forwards;
+}
+
+.toast-success { background: #0f766e; }
+.toast-error { background: #b91c1c; }
+.toast-info { background: #334155; }
+
+@keyframes toast-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 

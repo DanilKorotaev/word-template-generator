@@ -3,7 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from ..config import DEFAULT_OUTPUT_DIR_NAME, DEFAULT_TEMPLATE_NAME
+from ..config import (
+    DEFAULT_OUTPUT_DIR_NAME,
+    DEFAULT_TEMPLATE_NAME,
+    TEMPLATE_FILE_EXTENSIONS,
+    TEMPLATE_KEYWORDS,
+)
 from ..utils.frontmatter import read_frontmatter
 from .models import WorkspaceConfig
 
@@ -22,6 +27,43 @@ def load_project(project_dir: Path) -> tuple[dict[str, Any], list[Path]]:
     acts_dir = project_dir / "acts"
     act_files = sorted(acts_dir.glob("*.md"))
     return project_data, act_files
+
+
+def list_template_files(workspace_dir: Path) -> list[Path]:
+    allowed = {ext.lower() for ext in TEMPLATE_FILE_EXTENSIONS}
+    return sorted(
+        p
+        for p in workspace_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in allowed
+    )
+
+
+def suggest_template_name(workspace_dir: Path, preferred: str | None = None) -> str | None:
+    templates = list_template_files(workspace_dir)
+    if not templates:
+        return None
+
+    names = {p.name for p in templates}
+    if preferred and preferred in names:
+        return preferred
+
+    if len(templates) == 1:
+        return templates[0].name
+
+    keywords = tuple(k.casefold() for k in TEMPLATE_KEYWORDS)
+    keyword_matches = [
+        p.name
+        for p in templates
+        if any(keyword in p.stem.casefold() for keyword in keywords)
+    ]
+    if len(keyword_matches) == 1:
+        return keyword_matches[0]
+    if len(keyword_matches) > 1:
+        return sorted(keyword_matches)[0]
+
+    if DEFAULT_TEMPLATE_NAME in names:
+        return DEFAULT_TEMPLATE_NAME
+    return templates[0].name
 
 
 def load_workspace(workspace_dir: Path) -> tuple[WorkspaceConfig, list[Path]]:
@@ -44,7 +86,9 @@ def load_workspace(workspace_dir: Path) -> tuple[WorkspaceConfig, list[Path]]:
     else:
         project_ref = None
 
-    template_name = str(_value(project_data, "template", "шаблон", DEFAULT_TEMPLATE_NAME))
+    configured_template_name = str(_value(project_data, "template", "шаблон", DEFAULT_TEMPLATE_NAME))
+    template_name = suggest_template_name(workspace_dir, preferred=configured_template_name) or configured_template_name
+    project_data["template"] = template_name
     templates_dir = workspace_dir
     output_dir = workspace_dir / DEFAULT_OUTPUT_DIR_NAME
     acts_dir = workspace_dir / "acts"

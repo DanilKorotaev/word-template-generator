@@ -11,17 +11,17 @@
     <h2>Word Template Generator</h2>
     <div class="hint">Локальный режим: укажите путь к workspace на этом компьютере.</div>
 
-    <div class="row row-wrap">
-      <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
-      <button class="secondary" onclick="pickFolder()">Выбрать папку...</button>
-      <button class="secondary" onclick="loadActs()">Загрузить акты</button>
-      <button class="secondary" onclick="validateWs()">Проверить</button>
+    <div class="card">
+      <div class="section-title">Проект</div>
+      <div class="row row-wrap">
+        <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
+        <button class="secondary" onclick="pickFolder()">Выбрать папку...</button>
+        <button class="secondary" onclick="loadActs()">Загрузить</button>
+      </div>
     </div>
 
     <div class="card">
-      <div class="row" style="margin-bottom: 6px;">
-        <strong>Недавние проекты</strong>
-      </div>
+      <div class="section-title">Недавние проекты</div>
       <div class="row row-wrap">
         <select id="recent" class="grow recent-select"></select>
         <div class="actions">
@@ -33,14 +33,41 @@
       <div class="muted">Пути сохраняются только в этом браузере (localStorage).</div>
     </div>
 
-    <div class="row row-wrap">
-      <button onclick="buildAll()">Сгенерировать все</button>
-      <select id="acts" class="grow"></select>
-      <button onclick="buildOne()">Сгенерировать выбранный</button>
+    <div class="card">
+      <div class="section-title">Настройки генерации</div>
+      <div class="row row-wrap">
+        <label for="templateSelect">Шаблон</label>
+        <select id="templateSelect" class="grow"></select>
+      </div>
+      <div class="row row-wrap">
+        <label for="outputDir">Папка для результата</label>
+        <input id="outputDir" class="grow" placeholder="generated" />
+        <select id="outputDirSelect"></select>
+      </div>
     </div>
 
-    <textarea id="log" readonly></textarea>
+    <div class="card">
+      <div class="section-title">Генерация</div>
+      <div class="row row-wrap">
+        <button class="secondary" onclick="validateWs()">Проверить</button>
+        <button onclick="buildAll()">Сгенерировать все</button>
+      </div>
+      <div class="row row-wrap">
+        <label for="acts">Один акт</label>
+        <select id="acts" class="grow"></select>
+        <button onclick="buildOne()">Сгенерировать выбранный</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row row-wrap log-header">
+        <div class="section-title">Логи</div>
+        <button class="secondary" onclick="clearLog()">Очистить лог</button>
+      </div>
+      <textarea id="log" readonly></textarea>
+    </div>
   </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
   <script src="/static/app.js"></script>
 </body>
 </html>
