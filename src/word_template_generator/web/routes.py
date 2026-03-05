@@ -80,6 +80,29 @@ def acts(workspace: str) -> dict[str, Any]:
     }
 
 
+@router.get("/api/template-path")
+def template_path(workspace: str, template: str) -> dict[str, str]:
+    try:
+        cfg, _ = load_workspace(Path(workspace))
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    template_name = (template or "").strip()
+    if not template_name:
+        raise HTTPException(status_code=400, detail="Шаблон не выбран")
+
+    templates_root = cfg.templates_dir.resolve()
+    target = (cfg.templates_dir / template_name).resolve()
+    if not target.is_relative_to(templates_root):
+        raise HTTPException(status_code=400, detail="Некорректный путь к шаблону")
+    if target.suffix.lower() not in {".docx", ".docm"}:
+        raise HTTPException(status_code=400, detail="Поддерживаются только .docx или .docm")
+    if not target.exists() or not target.is_file():
+        raise HTTPException(status_code=404, detail="Шаблон не найден")
+
+    return {"path": str(target)}
+
+
 @router.post("/api/validate")
 def validate(payload: WorkspacePayload) -> dict[str, list[str]]:
     try:

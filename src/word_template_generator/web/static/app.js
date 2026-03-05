@@ -102,6 +102,12 @@ function selectedTemplate() {
   return value && value !== EMPTY_SELECT_VALUE ? value : null;
 }
 
+function updateOpenTemplateButtonState() {
+  const btn = document.getElementById("openTemplateBtn");
+  if (!btn) return;
+  btn.disabled = !selectedTemplate();
+}
+
 function outputDir() {
   return (document.getElementById("outputDir").value || "").trim();
 }
@@ -269,6 +275,44 @@ async function openFile(path) {
   showToast("Файл открыт", "success");
 }
 
+async function openTemplate() {
+  const workspace = ws();
+  if (!workspace) {
+    log("[ERR] Укажите путь к workspace.");
+    showToast("Укажите путь к workspace", "error");
+    return;
+  }
+
+  const template = selectedTemplate();
+  if (!template) {
+    log("[ERR] Сначала выберите шаблон.");
+    showToast("Сначала выберите шаблон", "error");
+    updateOpenTemplateButtonState();
+    return;
+  }
+
+  const url =
+    "/api/template-path?workspace=" +
+    encodeURIComponent(workspace) +
+    "&template=" +
+    encodeURIComponent(template);
+  const result = await fetchJson(
+    url,
+    undefined,
+    "Сервер не отвечает: путь к шаблону не получен"
+  );
+  if (!result) return;
+
+  const { response, data } = result;
+  if (!response.ok) {
+    const msg = data.detail || "Не удалось получить путь к шаблону";
+    log("[ERR] " + msg);
+    showToast(msg, "error");
+    return;
+  }
+  await openFile(data.path);
+}
+
 function normalizeRecentItem(item) {
   if (typeof item === "string") {
     return { path: item, lastUsed: Date.now(), template: null, outputDir: DEFAULT_OUTPUT_DIR };
@@ -348,6 +392,7 @@ function setTemplateOptions(templates, selected) {
     opt.textContent = "Шаблоны .docx/.docm не найдены";
     sel.appendChild(opt);
     sel.value = EMPTY_SELECT_VALUE;
+    updateOpenTemplateButtonState();
     return;
   }
 
@@ -370,6 +415,7 @@ function setTemplateOptions(templates, selected) {
   } else {
     sel.value = EMPTY_SELECT_VALUE;
   }
+  updateOpenTemplateButtonState();
 }
 
 function setOutputOptions(dirs, selected) {
@@ -641,6 +687,9 @@ document.getElementById("outputDirSelect").addEventListener("change", () => {
   if (!value) return;
   document.getElementById("outputDir").value = value;
 });
+document.getElementById("templateSelect").addEventListener("change", () => {
+  updateOpenTemplateButtonState();
+});
 document.getElementById("resultsSort").addEventListener("change", (event) => {
   resultsSortMode = event.target.value || "mtime_desc";
   renderResults();
@@ -650,5 +699,6 @@ setActsOptions([]);
 setTemplateOptions([], null);
 setOutputOptions([], DEFAULT_OUTPUT_DIR);
 document.getElementById("outputDir").value = DEFAULT_OUTPUT_DIR;
+updateOpenTemplateButtonState();
 void hydrateFromStorage();
 

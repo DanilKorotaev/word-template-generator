@@ -38,6 +38,14 @@
       <div class="row row-wrap">
         <label for="templateSelect">Шаблон</label>
         <select id="templateSelect" class="grow"></select>
+        <button
+          id="openTemplateBtn"
+          class="secondary"
+          onclick="withLoading(event, openTemplate)"
+          disabled
+        >
+          Открыть шаблон
+        </button>
       </div>
       <div class="row row-wrap">
         <label for="outputDir">Папка для результата</label>
