@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import datetime as dt
 import re
 from pathlib import Path
 from typing import Any
 
 from docxtpl import DocxTemplate
 
+from ..utils.date_format import DEFAULT_DATE_FORMAT, format_date, parse_date
 from ..utils.frontmatter import read_frontmatter
 from .models import BuildResult
 
-TOKEN_RE = re.compile(r"\[\[([^\[\]\n]+?)\]\]")
+TOKEN_RE = re.compile(r"\[\[([^\[\]\n|]+?)(?:\|([^\[\]\n]+?))?\]\]")
 
 
 def _value(data: dict[str, Any], en: str, ru: str, default: Any = None) -> Any:
@@ -22,6 +24,7 @@ def _value(data: dict[str, Any], en: str, ru: str, default: Any = None) -> Any:
 
 def _resolve_tokens(context: dict[str, Any]) -> dict[str, Any]:
     resolved = dict(context)
+    generation_today = dt.date.today()
     for _ in range(10):
         changed = False
         for key, value in resolved.items():
@@ -30,8 +33,14 @@ def _resolve_tokens(context: dict[str, Any]) -> dict[str, Any]:
 
             def repl(match: re.Match[str]) -> str:
                 token = match.group(1).strip()
-                replacement = resolved.get(token)
-                return "" if replacement is None else str(replacement)
+                output_format = (match.group(2) or "").strip() or None
+                replacement: Any = generation_today if token.lower() in {"today", "сегодня"} else resolved.get(token)
+                if replacement is None:
+                    return ""
+                parsed = parse_date(replacement, today=generation_today, field_name=token)
+                if parsed is not None:
+                    return format_date(parsed, output_format or DEFAULT_DATE_FORMAT)
+                return str(replacement)
 
             new_value = TOKEN_RE.sub(repl, value)
             if new_value != value:
@@ -71,6 +80,12 @@ def _merge_fields(project_data: dict[str, Any], act_data: dict[str, Any]) -> dic
         context["номер"] = context.get("number")
         context["номер_значение"] = context.get("number_value")
         context["номер_префикс"] = context.get("number_prefix", "")
+
+    generation_today = dt.date.today()
+    for key, value in list(context.items()):
+        parsed = parse_date(value, today=generation_today, field_name=key)
+        if parsed is not None:
+            context[key] = format_date(parsed, DEFAULT_DATE_FORMAT)
 
     return _resolve_tokens(context)
 
