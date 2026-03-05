@@ -15,3 +15,7 @@ class BuildOnePayload(BaseModel):
     template: str | None = None
     output_dir: str | None = None
 
+
+class OpenFilePayload(BaseModel):
+    path: str
+

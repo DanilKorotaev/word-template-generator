@@ -2,6 +2,9 @@ const RECENT_KEY = "word_template_generator.recent_workspaces.v1";
 const RECENT_MAX = 8;
 const EMPTY_SELECT_VALUE = "__none__";
 const DEFAULT_OUTPUT_DIR = "generated";
+const resultsByWorkspace = new Map();
+let activeResultsWorkspace = "";
+let resultsSortMode = "mtime_desc";
 
 function normalizeWorkspacePath(rawValue) {
   let value = (rawValue || "").trim();
@@ -108,6 +111,162 @@ function generationSettings() {
     template: selectedTemplate(),
     outputDir: outputDir() || DEFAULT_OUTPUT_DIR,
   };
+}
+
+function workspaceKey(value) {
+  return normalizeWorkspacePath(value || "");
+}
+
+function getActiveResults() {
+  return resultsByWorkspace.get(activeResultsWorkspace) || [];
+}
+
+function setActiveResults(files) {
+  if (!activeResultsWorkspace) return;
+  resultsByWorkspace.set(activeResultsWorkspace, files);
+}
+
+function switchResultsWorkspace(workspace) {
+  activeResultsWorkspace = workspaceKey(workspace);
+  renderResults();
+}
+
+function normalizeGeneratedFiles(rawFiles) {
+  if (!Array.isArray(rawFiles)) return [];
+  return rawFiles
+    .map((item) => {
+      if (!item || typeof item.path !== "string") return null;
+      const path = item.path.trim();
+      if (!path) return null;
+      const name =
+        typeof item.name === "string" && item.name.trim()
+          ? item.name.trim()
+          : path.split(/[\\/]/).pop() || path;
+      return {
+        act: typeof item.act === "string" ? item.act : "",
+        path,
+        name,
+        mtime: Number(item.mtime || 0),
+      };
+    })
+    .filter(Boolean);
+}
+
+function getSortedResults() {
+  const files = [...getActiveResults()];
+  if (resultsSortMode === "name_asc") {
+    files.sort((a, b) => a.name.localeCompare(b.name, "ru", { sensitivity: "base" }));
+    return files;
+  }
+  files.sort((a, b) => {
+    const mtimeDiff = Number(b.mtime || 0) - Number(a.mtime || 0);
+    if (mtimeDiff !== 0) return mtimeDiff;
+    return a.name.localeCompare(b.name, "ru", { sensitivity: "base" });
+  });
+  return files;
+}
+
+function clearResults() {
+  if (activeResultsWorkspace) {
+    resultsByWorkspace.delete(activeResultsWorkspace);
+  }
+  renderResults();
+}
+
+function renderResults(highlightPaths = new Set()) {
+  const card = document.getElementById("resultsCard");
+  const list = document.getElementById("resultsList");
+  list.innerHTML = "";
+
+  if (!getActiveResults().length) {
+    card.style.display = "none";
+    return;
+  }
+
+  for (const file of getSortedResults()) {
+    const item = document.createElement("div");
+    item.className = "result-item";
+    if (highlightPaths.has(file.path)) {
+      item.classList.add("result-item-updated");
+    }
+    item.title = "Двойной клик, чтобы открыть файл";
+    item.addEventListener("dblclick", () => {
+      void openFile(file.path);
+    });
+
+    const icon = document.createElement("span");
+    icon.className = "result-icon";
+    icon.textContent = "📄";
+
+    const meta = document.createElement("div");
+    meta.className = "result-meta";
+
+    const name = document.createElement("span");
+    name.className = "result-name";
+    name.textContent = file.name;
+
+    const path = document.createElement("span");
+    path.className = "result-path";
+    path.textContent = file.path;
+    path.title = file.path;
+
+    meta.appendChild(name);
+    meta.appendChild(path);
+
+    const openBtn = document.createElement("button");
+    openBtn.className = "secondary result-open";
+    openBtn.textContent = "Открыть";
+    openBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void withLoading(openBtn, () => openFile(file.path));
+    });
+
+    item.appendChild(icon);
+    item.appendChild(meta);
+    item.appendChild(openBtn);
+    list.appendChild(item);
+  }
+  card.style.display = "block";
+}
+
+function upsertResults(files) {
+  const incoming = normalizeGeneratedFiles(files);
+  if (!incoming.length) return;
+
+  const incomingByPath = new Map();
+  for (const file of incoming) incomingByPath.set(file.path, file);
+  const highlighted = new Set(incomingByPath.keys());
+
+  const nextResults = [...incomingByPath.values()];
+  for (const existing of getActiveResults()) {
+    if (!incomingByPath.has(existing.path)) {
+      nextResults.push(existing);
+    }
+  }
+  setActiveResults(nextResults);
+  renderResults(highlighted);
+}
+
+async function openFile(path) {
+  const result = await fetchJson(
+    "/api/open-file",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    },
+    "Сервер не отвечает: файл не открыт"
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
+    const msg = data.detail || "Не удалось открыть файл";
+    log("[ERR] " + msg);
+    showToast(msg, "error");
+    return;
+  }
+  log("[OK] Открыт файл: " + path);
+  showToast("Файл открыт", "success");
 }
 
 function normalizeRecentItem(item) {
@@ -321,6 +480,7 @@ async function pickFolder() {
 async function loadActs(options = {}) {
   const silent = Boolean(options.silent);
   const workspace = ws();
+  switchResultsWorkspace(workspace);
   if (!workspace) {
     log("[ERR] Укажите путь к workspace.");
     if (!silent) showToast("Укажите путь к workspace", "error");
@@ -396,6 +556,7 @@ async function validateWs() {
 
 async function buildAll() {
   const workspace = ws();
+  switchResultsWorkspace(workspace);
   if (!workspace) {
     log("[ERR] Укажите путь к workspace.");
     showToast("Укажите путь к workspace", "error");
@@ -424,11 +585,13 @@ async function buildAll() {
   }
   rememberWorkspace(workspace, generationSettings());
   for (const line of data.log) log(line);
+  upsertResults(data.files);
   showToast("Все акты успешно сгенерированы", "success");
 }
 
 async function buildOne() {
   const workspace = ws();
+  switchResultsWorkspace(workspace);
   const act = document.getElementById("acts").value;
   if (!workspace) {
     log("[ERR] Укажите путь к workspace.");
@@ -469,6 +632,7 @@ async function buildOne() {
   }
   rememberWorkspace(workspace, generationSettings());
   for (const line of data.log) log(line);
+  upsertResults(data.files);
   showToast("Выбранный акт успешно сгенерирован", "success");
 }
 
@@ -476,6 +640,10 @@ document.getElementById("outputDirSelect").addEventListener("change", () => {
   const value = document.getElementById("outputDirSelect").value;
   if (!value) return;
   document.getElementById("outputDir").value = value;
+});
+document.getElementById("resultsSort").addEventListener("change", (event) => {
+  resultsSortMode = event.target.value || "mtime_desc";
+  renderResults();
 });
 
 setActsOptions([]);

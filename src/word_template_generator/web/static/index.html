@@ -59,6 +59,20 @@
       </div>
     </div>
 
+    <div class="card" id="resultsCard" style="display: none;">
+      <div class="row row-wrap log-header">
+        <div class="section-title">Результаты</div>
+        <div class="actions">
+          <select id="resultsSort" class="results-sort" title="Сортировка результатов">
+            <option value="mtime_desc">По дате изменения (новые сверху)</option>
+            <option value="name_asc">По имени (А-Я)</option>
+          </select>
+          <button class="secondary" onclick="clearResults()">Очистить</button>
+        </div>
+      </div>
+      <div id="resultsList" class="results-list"></div>
+    </div>
+
     <div class="card">
       <div class="row row-wrap log-header">
         <div class="section-title">Логи</div>
