@@ -42,6 +42,46 @@ function showToast(message, kind = "info") {
   }, 3400);
 }
 
+async function withLoading(buttonOrEvent, asyncFn) {
+  const btn =
+    buttonOrEvent instanceof Event ? buttonOrEvent.currentTarget : buttonOrEvent;
+  if (!btn || typeof asyncFn !== "function") return;
+  if (btn.classList.contains("loading")) return;
+
+  const originalMinWidth = btn.style.minWidth;
+  btn.style.minWidth = `${btn.offsetWidth}px`;
+  btn.disabled = true;
+  btn.classList.add("loading");
+
+  try {
+    await asyncFn();
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.style.minWidth = originalMinWidth;
+  }
+}
+
+async function fetchJson(url, options, networkErrorMessage, silent = false) {
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch {
+    log("[ERR] " + networkErrorMessage);
+    if (!silent) showToast(networkErrorMessage, "error");
+    return null;
+  }
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  return { response, data };
+}
+
 function clearLog() {
   document.getElementById("log").value = "";
   showToast("Лог очищен", "info");
@@ -253,9 +293,14 @@ async function hydrateFromStorage() {
 }
 
 async function pickFolder() {
-  const res = await fetch("/api/pick-workspace", { method: "POST" });
-  const data = await res.json();
-  if (!res.ok) {
+  const result = await fetchJson(
+    "/api/pick-workspace",
+    { method: "POST" },
+    "Сервер не отвечает: не удалось выбрать папку"
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
     const msg = data.detail || "Не удалось выбрать папку";
     log("[ERR] " + msg);
     showToast(msg, "error");
@@ -282,9 +327,15 @@ async function loadActs(options = {}) {
     return;
   }
   const url = "/api/acts?workspace=" + encodeURIComponent(workspace);
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) {
+  const result = await fetchJson(
+    url,
+    undefined,
+    "Сервер не отвечает: не удалось загрузить акты",
+    silent
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
     const msg = data.detail || "Не удалось загрузить акты";
     log("[ERR] " + msg);
     if (!silent) showToast(msg, "error");
@@ -317,17 +368,22 @@ async function validateWs() {
     showToast("Укажите путь к workspace", "error");
     return;
   }
-  const res = await fetch("/api/validate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      workspace,
-      template: selectedTemplate(),
-      output_dir: outputDir(),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
+  const result = await fetchJson(
+    "/api/validate",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workspace,
+        template: selectedTemplate(),
+        output_dir: outputDir(),
+      }),
+    },
+    "Сервер не отвечает: проверка не выполнена"
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
     const msg = data.detail || "Проверка завершилась с ошибкой";
     log("[ERR] " + msg);
     showToast(msg, "error");
@@ -345,17 +401,22 @@ async function buildAll() {
     showToast("Укажите путь к workspace", "error");
     return;
   }
-  const res = await fetch("/api/build-all", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      workspace,
-      template: selectedTemplate(),
-      output_dir: outputDir(),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
+  const result = await fetchJson(
+    "/api/build-all",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workspace,
+        template: selectedTemplate(),
+        output_dir: outputDir(),
+      }),
+    },
+    "Сервер не отвечает: генерация не выполнена"
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
     const msg = data.detail || "Генерация завершилась с ошибкой";
     log("[ERR] " + msg);
     showToast(msg, "error");
@@ -384,18 +445,23 @@ async function buildOne() {
     showToast("Сначала выберите конкретный акт", "error");
     return;
   }
-  const res = await fetch("/api/build-one", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      workspace,
-      act,
-      template: selectedTemplate(),
-      output_dir: outputDir(),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
+  const result = await fetchJson(
+    "/api/build-one",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workspace,
+        act,
+        template: selectedTemplate(),
+        output_dir: outputDir(),
+      }),
+    },
+    "Сервер не отвечает: генерация не выполнена"
+  );
+  if (!result) return;
+  const { response, data } = result;
+  if (!response.ok) {
     const msg = data.detail || "Генерация завершилась с ошибкой";
     log("[ERR] " + msg);
     showToast(msg, "error");

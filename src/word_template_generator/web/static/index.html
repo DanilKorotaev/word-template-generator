@@ -15,8 +15,8 @@
       <div class="section-title">Проект</div>
       <div class="row row-wrap">
         <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
-        <button class="secondary" onclick="pickFolder()">Выбрать папку...</button>
-        <button class="secondary" onclick="loadActs()">Загрузить</button>
+        <button class="secondary" onclick="withLoading(event, pickFolder)">Выбрать папку...</button>
+        <button class="secondary" onclick="withLoading(event, loadActs)">Загрузить</button>
       </div>
     </div>
 
@@ -49,13 +49,13 @@
     <div class="card">
       <div class="section-title">Генерация</div>
       <div class="row row-wrap">
-        <button class="secondary" onclick="validateWs()">Проверить</button>
-        <button onclick="buildAll()">Сгенерировать все</button>
+        <button class="secondary" onclick="withLoading(event, validateWs)">Проверить</button>
+        <button onclick="withLoading(event, buildAll)">Сгенерировать все</button>
       </div>
       <div class="row row-wrap">
         <label for="acts">Один акт</label>
         <select id="acts" class="grow"></select>
-        <button onclick="buildOne()">Сгенерировать выбранный</button>
+        <button onclick="withLoading(event, buildOne)">Сгенерировать выбранный</button>
       </div>
     </div>
 
