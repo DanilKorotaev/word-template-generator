@@ -2,6 +2,7 @@ const RECENT_KEY = "word_template_generator.recent_workspaces.v1";
 const RECENT_MAX = 8;
 const EMPTY_SELECT_VALUE = "__none__";
 const DEFAULT_OUTPUT_DIR = "generated";
+const KNOWN_SCREENS = new Set(["generator", "editor"]);
 const resultsByWorkspace = new Map();
 let activeResultsWorkspace = "";
 let resultsSortMode = "mtime_desc";
@@ -682,6 +683,58 @@ async function buildOne() {
   showToast("Выбранный акт успешно сгенерирован", "success");
 }
 
+function screenFromHash() {
+  const raw = (window.location.hash || "").replace(/^#/, "").trim().toLowerCase();
+  return KNOWN_SCREENS.has(raw) ? raw : "generator";
+}
+
+function applyScreen(screen) {
+  const generatorScreen = document.getElementById("screen-generator");
+  const editorScreen = document.getElementById("screen-editor");
+  const generatorTab = document.getElementById("tab-generator");
+  const editorTab = document.getElementById("tab-editor");
+  const isEditor = screen === "editor";
+
+  generatorScreen.style.display = isEditor ? "none" : "block";
+  editorScreen.style.display = isEditor ? "block" : "none";
+  generatorTab.disabled = !isEditor;
+  editorTab.disabled = isEditor;
+  generatorTab.classList.toggle("nav-tab-active", !isEditor);
+  editorTab.classList.toggle("nav-tab-active", isEditor);
+
+  if (window.editorOnScreenChange) {
+    window.editorOnScreenChange(screen);
+  }
+}
+
+function setScreen(screen) {
+  const target = KNOWN_SCREENS.has(screen) ? screen : "generator";
+  const current = screenFromHash();
+  if (current === "editor" && target !== "editor" && window.editorCanLeaveScreen) {
+    if (!window.editorCanLeaveScreen()) return;
+  }
+  const nextHash = "#" + target;
+  if (window.location.hash !== nextHash) {
+    window.location.hash = nextHash;
+    return;
+  }
+  applyScreen(target);
+}
+
+function handleHashChange() {
+  const target = screenFromHash();
+  const editorVisible = document.getElementById("screen-editor").style.display !== "none";
+  if (editorVisible && target !== "editor" && window.editorCanLeaveScreen) {
+    if (!window.editorCanLeaveScreen()) {
+      if (window.location.hash !== "#editor") {
+        window.location.hash = "#editor";
+      }
+      return;
+    }
+  }
+  applyScreen(target);
+}
+
 document.getElementById("outputDirSelect").addEventListener("change", () => {
   const value = document.getElementById("outputDirSelect").value;
   if (!value) return;
@@ -694,11 +747,20 @@ document.getElementById("resultsSort").addEventListener("change", (event) => {
   resultsSortMode = event.target.value || "mtime_desc";
   renderResults();
 });
+window.addEventListener("hashchange", handleHashChange);
 
 setActsOptions([]);
 setTemplateOptions([], null);
 setOutputOptions([], DEFAULT_OUTPUT_DIR);
 document.getElementById("outputDir").value = DEFAULT_OUTPUT_DIR;
 updateOpenTemplateButtonState();
-void hydrateFromStorage();
+handleHashChange();
+void (async () => {
+  await hydrateFromStorage();
+  // On hard refresh at #editor we need one more sync
+  // after workspace has been restored from localStorage.
+  if (window.editorOnScreenChange) {
+    await window.editorOnScreenChange(screenFromHash());
+  }
+})();
 

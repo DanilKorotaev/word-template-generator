@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import socket
+import webbrowser
 from pathlib import Path
+from urllib import error as urlerror
+from urllib import request as urlrequest
 
 import typer
 
@@ -11,6 +15,24 @@ from .core import (
 )
 
 app = typer.Typer(help="Word Template Generator (DOCX from markdown).")
+
+
+def _can_bind(host: str, port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind((host, port))
+            return True
+        except OSError:
+            return False
+
+
+def _is_http_alive(url: str) -> bool:
+    try:
+        with urlrequest.urlopen(url, timeout=1.2) as response:
+            return int(response.status) < 500
+    except (urlerror.URLError, TimeoutError, OSError):
+        return False
 
 
 @app.command("build-all")
@@ -270,6 +292,16 @@ def launch_web_ui(
 
     typer.echo("[INFO] Web UI запускается в local-first режиме.")
     typer.echo("[INFO] Workspace должен быть доступен на том же компьютере, где запущен Python.")
+    url = f"http://{host}:{port}"
+    if not _can_bind(host, port):
+        if _is_http_alive(url):
+            typer.echo(f"[OK] Web UI уже запущен: {url}")
+            if not no_open:
+                webbrowser.open(url)
+            return
+        typer.echo(f"[ERR] Port {port} is already in use.")
+        typer.echo("[TIP] Close conflicting process or run with --port <another-port>.")
+        raise typer.Exit(code=1)
     try:
         run_web_ui(host=host, port=port, open_browser=not no_open)
     except RuntimeError as exc:

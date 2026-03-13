@@ -9,88 +9,149 @@
 <body>
   <div class="wrap">
     <h2>Word Template Generator</h2>
+    <div class="row row-wrap nav-tabs">
+      <button id="tab-generator" class="secondary nav-tab" onclick="setScreen('generator')">Генератор</button>
+      <button id="tab-editor" class="secondary nav-tab" onclick="setScreen('editor')">Редактор актов</button>
+    </div>
     <div class="hint">Локальный режим: укажите путь к workspace на этом компьютере.</div>
 
-    <div class="card">
-      <div class="section-title">Проект</div>
-      <div class="row row-wrap">
-        <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
-        <button class="secondary" onclick="withLoading(event, pickFolder)">Выбрать папку...</button>
-        <button class="secondary" onclick="withLoading(event, loadActs)">Загрузить</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Недавние проекты</div>
-      <div class="row row-wrap">
-        <select id="recent" class="grow recent-select"></select>
-        <div class="actions">
-          <button class="secondary" onclick="useRecent()">Использовать</button>
-          <button class="secondary" onclick="removeRecent()">Удалить</button>
-          <button class="secondary" onclick="clearRecent()">Очистить все</button>
+    <div id="screen-generator" class="screen">
+      <div class="card">
+        <div class="section-title">Проект</div>
+        <div class="row row-wrap">
+          <input id="workspace" class="grow" placeholder="/путь/к/workspace" />
+          <button class="secondary" onclick="withLoading(event, pickFolder)">Выбрать папку...</button>
+          <button class="secondary" onclick="withLoading(event, loadActs)">Загрузить</button>
         </div>
       </div>
-      <div class="muted">Пути сохраняются только в этом браузере (localStorage).</div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">Настройки генерации</div>
-      <div class="row row-wrap">
-        <label for="templateSelect">Шаблон</label>
-        <select id="templateSelect" class="grow"></select>
-        <button
-          id="openTemplateBtn"
-          class="secondary"
-          onclick="withLoading(event, openTemplate)"
-          disabled
-        >
-          Открыть шаблон
-        </button>
+      <div class="card">
+        <div class="section-title">Недавние проекты</div>
+        <div class="row row-wrap">
+          <select id="recent" class="grow recent-select"></select>
+          <div class="actions">
+            <button class="secondary" onclick="useRecent()">Использовать</button>
+            <button class="secondary" onclick="removeRecent()">Удалить</button>
+            <button class="secondary" onclick="clearRecent()">Очистить все</button>
+          </div>
+        </div>
+        <div class="muted">Пути сохраняются только в этом браузере (localStorage).</div>
       </div>
-      <div class="row row-wrap">
-        <label for="outputDir">Папка для результата</label>
-        <input id="outputDir" class="grow" placeholder="generated" />
-        <select id="outputDirSelect"></select>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">Генерация</div>
-      <div class="row row-wrap">
-        <button class="secondary" onclick="withLoading(event, validateWs)">Проверить</button>
-        <button onclick="withLoading(event, buildAll)">Сгенерировать все</button>
-      </div>
-      <div class="row row-wrap">
-        <label for="acts">Один акт</label>
-        <select id="acts" class="grow"></select>
-        <button onclick="withLoading(event, buildOne)">Сгенерировать выбранный</button>
-      </div>
-    </div>
-
-    <div class="card" id="resultsCard" style="display: none;">
-      <div class="row row-wrap log-header">
-        <div class="section-title">Результаты</div>
-        <div class="actions">
-          <select id="resultsSort" class="results-sort" title="Сортировка результатов">
-            <option value="mtime_desc">По дате изменения (новые сверху)</option>
-            <option value="name_asc">По имени (А-Я)</option>
-          </select>
-          <button class="secondary" onclick="clearResults()">Очистить</button>
+      <div class="card">
+        <div class="section-title">Настройки генерации</div>
+        <div class="row row-wrap">
+          <label for="templateSelect">Шаблон</label>
+          <select id="templateSelect" class="grow"></select>
+          <button
+            id="openTemplateBtn"
+            class="secondary"
+            onclick="withLoading(event, openTemplate)"
+            disabled
+          >
+            Открыть шаблон
+          </button>
+        </div>
+        <div class="row row-wrap">
+          <label for="outputDir">Папка для результата</label>
+          <input id="outputDir" class="grow" placeholder="generated" />
+          <select id="outputDirSelect"></select>
         </div>
       </div>
-      <div id="resultsList" class="results-list"></div>
+
+      <div class="card">
+        <div class="section-title">Генерация</div>
+        <div class="row row-wrap">
+          <button class="secondary" onclick="withLoading(event, validateWs)">Проверить</button>
+          <button onclick="withLoading(event, buildAll)">Сгенерировать все</button>
+        </div>
+        <div class="row row-wrap">
+          <label for="acts">Один акт</label>
+          <select id="acts" class="grow"></select>
+          <button onclick="withLoading(event, buildOne)">Сгенерировать выбранный</button>
+        </div>
+      </div>
+
+      <div class="card" id="resultsCard" style="display: none;">
+        <div class="row row-wrap log-header">
+          <div class="section-title">Результаты</div>
+          <div class="actions">
+            <select id="resultsSort" class="results-sort" title="Сортировка результатов">
+              <option value="mtime_desc">По дате изменения (новые сверху)</option>
+              <option value="name_asc">По имени (А-Я)</option>
+            </select>
+            <button class="secondary" onclick="clearResults()">Очистить</button>
+          </div>
+        </div>
+        <div id="resultsList" class="results-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="row row-wrap log-header">
+          <div class="section-title">Логи</div>
+          <button class="secondary" onclick="clearLog()">Очистить лог</button>
+        </div>
+        <textarea id="log" readonly></textarea>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="row row-wrap log-header">
-        <div class="section-title">Логи</div>
-        <button class="secondary" onclick="clearLog()">Очистить лог</button>
+    <div id="screen-editor" class="screen" style="display: none;">
+      <div class="card">
+        <div class="row row-wrap log-header">
+          <div class="section-title">Редактор актов</div>
+          <button class="secondary" id="editorCreateBtn" onclick="withLoading(event, editorCreateAct)">+ Создать акт</button>
+        </div>
+        <div id="editorList" class="results-list"></div>
       </div>
-      <textarea id="log" readonly></textarea>
+      <div class="card" id="editorCard" style="display: none;">
+        <div class="row row-wrap log-header">
+          <div class="section-title" id="editorTitle">Редактирование акта</div>
+          <button class="secondary" onclick="editorBackToList()">К списку</button>
+        </div>
+        <div class="row row-wrap editor-meta-single">
+          <label for="editorTemplate">Шаблон</label>
+          <select id="editorTemplate" class="grow"></select>
+        </div>
+        <div class="card editor-subcard">
+          <div class="row row-wrap log-header">
+            <div class="section-title">Переменные шаблона</div>
+            <button class="secondary" id="editorAddMissingBtn" onclick="editorAddMissingFields()" disabled>Добавить недостающие поля</button>
+          </div>
+          <div id="editorTemplateVars" class="muted">Выберите шаблон, чтобы увидеть переменные.</div>
+        </div>
+        <div class="row row-wrap editor-meta-pairs">
+          <label for="editorFilename">Имя файла</label>
+          <input id="editorFilename" class="grow" placeholder="акт-001.md" />
+          <label for="editorOutputName">output_name</label>
+          <input id="editorOutputName" class="grow" placeholder="act_output_name" />
+        </div>
+        <div class="row row-wrap editor-meta-pairs">
+          <label for="editorNumberPrefix">Префикс номера</label>
+          <input id="editorNumberPrefix" class="grow" placeholder="КЖ-Б-473-" />
+          <label for="editorNumberValue">Значение номера</label>
+          <input id="editorNumberValue" type="number" class="grow" />
+        </div>
+        <div class="row row-wrap log-header">
+          <div class="section-title">Поля</div>
+          <button class="secondary" onclick="editorAddField()">+ Добавить поле</button>
+        </div>
+        <div id="editorFields"></div>
+        <div class="card editor-subcard">
+          <div class="section-title">Наследуемые поля из project.md</div>
+          <div id="editorProjectFields" class="muted">Поля проекта не загружены.</div>
+        </div>
+        <div class="row row-wrap">
+          <button id="editorSaveBtn" onclick="withLoading(event, editorSaveAct)">Сохранить</button>
+          <button id="editorDeleteBtn" class="secondary" onclick="withLoading(event, editorDeleteAct)">Удалить</button>
+          <button id="editorGenerateBtn" class="secondary" onclick="withLoading(event, editorGenerateAct)">Сгенерировать</button>
+        </div>
+        <div id="editorGenerationResult" class="muted">Результат генерации появится здесь.</div>
+      </div>
     </div>
   </div>
   <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
   <script src="/static/app.js"></script>
+  <script src="/static/editor.js"></script>
 </body>
 </html>
 
