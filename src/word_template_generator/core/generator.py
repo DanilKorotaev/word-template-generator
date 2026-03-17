@@ -82,10 +82,18 @@ def _merge_fields(project_data: dict[str, Any], act_data: dict[str, Any]) -> dic
         context["номер_префикс"] = context.get("number_prefix", "")
 
     generation_today = dt.date.today()
+    editor_meta = act_data.get("_editor", {}) if isinstance(act_data.get("_editor", {}), dict) else {}
+    field_types_meta = editor_meta.get("field_types", {}) if isinstance(editor_meta.get("field_types", {}), dict) else {}
     for key, value in list(context.items()):
         parsed = parse_date(value, today=generation_today, field_name=key)
         if parsed is not None:
-            context[key] = format_date(parsed, DEFAULT_DATE_FORMAT)
+            date_format = DEFAULT_DATE_FORMAT
+            field_meta = field_types_meta.get(key, {}) if isinstance(field_types_meta.get(key, {}), dict) else {}
+            if field_meta.get("type") == "date":
+                configured = field_meta.get("format")
+                if isinstance(configured, str) and configured.strip():
+                    date_format = configured.strip()
+            context[key] = format_date(parsed, date_format)
 
     return _resolve_tokens(context)
 

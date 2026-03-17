@@ -211,6 +211,11 @@ textarea {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
+.editor-date-format-controls {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  gap: 8px;
+}
 .editor-inline-preview {
   color: #475569;
   font-size: 12px;
@@ -223,7 +228,8 @@ textarea {
     grid-template-columns: 1fr;
   }
   .editor-reference-controls,
-  .editor-date-controls {
+  .editor-date-controls,
+  .editor-date-format-controls {
     grid-template-columns: 1fr;
   }
   .editor-type-select {

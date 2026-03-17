@@ -6,6 +6,16 @@ from word_template_generator.core.generator import _merge_fields
 
 
 class GeneratorDateTokenTests(unittest.TestCase):
+    def test_date_field_respects_editor_format(self) -> None:
+        context = _merge_fields(
+            project_data={},
+            act_data={
+                "поля": {"дата": "04.03.2026"},
+                "_editor": {"field_types": {"дата": {"type": "date", "format": "d MMMMG yyyy г."}}},
+            },
+        )
+        self.assertEqual(context["дата"], "4 марта 2026 г.")
+
     def test_date_token_with_format(self) -> None:
         context = _merge_fields(
             project_data={},

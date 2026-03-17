@@ -12,17 +12,39 @@ const editorState = {
 };
 // Temporarily disable explicit "reference" type in UI.
 const ENABLE_REFERENCE_TYPE = false;
+// Temporarily disable explicit "number" type in UI.
+const ENABLE_NUMBER_TYPE = false;
 
 const DATE_FORMAT_SUGGESTIONS = [
   "dd.MM.yyyy",
   "d.M.yyyy",
-  "yyyy-MM-dd",
-  "dd/MM/yyyy",
-  "d MMMM yyyy",
-  "d MMMM yyyy г.",
-  "d MMMMG yyyy г.",
-  "dd MMM yyyy",
+  "d.MM.yyyy",
+  "dd.M.yyyy",
   "dd.MM.yy",
+  "d.M.yy",
+  "d.MM.yy",
+  "dd.M.yy",
+  "yyyy-MM-dd",
+  "yyyy/MM/dd",
+  "dd/MM/yyyy",
+  "d/M/yyyy",
+  "MM/dd/yyyy",
+  "M/d/yyyy",
+  "dd.MM",
+  "d.M",
+  "MMMM yyyy",
+  "MMMMG yyyy",
+  "d MMMM yyyy",
+  "dd MMMM yyyy",
+  "d MMMM yyyy г.",
+  "dd MMMM yyyy г.",
+  "d MMMMG yyyy",
+  "d MMMMG yyyy г.",
+  "dd MMMMG yyyy",
+  "dd MMMMG yyyy г.",
+  "d MMM yyyy",
+  "dd MMM yyyy",
+  "dd MMM yyyy г.",
 ];
 
 const MONTHS_NOM = [
@@ -131,6 +153,7 @@ function editorNormalizeFieldType(rawType) {
   const known = new Set(["text", "multiline", "date", "reference", "number"]);
   const base = known.has(rawType) ? rawType : "text";
   if (!ENABLE_REFERENCE_TYPE && base === "reference") return "text";
+  if (!ENABLE_NUMBER_TYPE && base === "number") return "text";
   return base;
 }
 
@@ -241,13 +264,55 @@ function editorRenderTemplateOptions(selected = null) {
   }
 }
 
-function editorCreateDateFormatOptions(selected) {
+function editorCreateDateFormatControls(selected, onChange) {
+  const root = document.createElement("div");
+  root.className = "editor-date-format-controls";
+
+  const presetSelect = document.createElement("select");
+  const customKey = "__custom__";
+  const uniqueSuggestions = [...new Set(DATE_FORMAT_SUGGESTIONS)];
+
+  for (const format of uniqueSuggestions) {
+    const option = document.createElement("option");
+    option.value = format;
+    option.textContent = format;
+    presetSelect.appendChild(option);
+  }
+  const customOption = document.createElement("option");
+  customOption.value = customKey;
+  customOption.textContent = "Свой формат...";
+  presetSelect.appendChild(customOption);
+
   const input = document.createElement("input");
   input.type = "text";
   input.placeholder = "Формат даты (например d MMMM yyyy)";
   input.value = selected || "dd.MM.yyyy";
-  input.setAttribute("list", "editor-date-format-suggestions");
-  return input;
+
+  function syncPreset(value) {
+    const normalized = String(value || "").trim();
+    presetSelect.value = uniqueSuggestions.includes(normalized) ? normalized : customKey;
+  }
+
+  syncPreset(input.value);
+
+  presetSelect.addEventListener("change", () => {
+    if (presetSelect.value === customKey) {
+      input.focus();
+      input.select();
+      return;
+    }
+    input.value = presetSelect.value;
+    onChange(input.value);
+  });
+
+  input.addEventListener("input", () => {
+    syncPreset(input.value);
+    onChange(input.value);
+  });
+
+  root.appendChild(presetSelect);
+  root.appendChild(input);
+  return { root, input };
 }
 
 function editorFormatDatePreview(ddmmyyyy, format) {
@@ -271,18 +336,6 @@ function editorFormatDatePreview(ddmmyyyy, format) {
   result = result.replaceAll("yyyy", String(year));
   result = result.replaceAll("yy", String(year % 100).padStart(2, "0"));
   return result;
-}
-
-function editorEnsureDateFormatDatalist() {
-  if (document.getElementById("editor-date-format-suggestions")) return;
-  const list = document.createElement("datalist");
-  list.id = "editor-date-format-suggestions";
-  for (const format of DATE_FORMAT_SUGGESTIONS) {
-    const option = document.createElement("option");
-    option.value = format;
-    list.appendChild(option);
-  }
-  document.body.appendChild(list);
 }
 
 function editorBuildLabeledControl(labelText, controlElement) {
@@ -357,8 +410,6 @@ function editorBuildValueInput(field, index) {
   }
 
   if (normalizedType === "date") {
-    editorEnsureDateFormatDatalist();
-
     const controls = document.createElement("div");
     controls.className = "editor-date-controls";
 
@@ -366,12 +417,20 @@ function editorBuildValueInput(field, index) {
     dateInput.type = "date";
     dateInput.value = editorToDateInputValue(field.value);
 
-    const formatSelect = editorCreateDateFormatOptions(field.format || "dd.MM.yyyy");
+    const formatControls = editorCreateDateFormatControls(field.format || "dd.MM.yyyy", (nextFormat) => {
+      editorState.fields[index].format = nextFormat;
+      editorMarkDirty();
+      const next = String(editorState.fields[index].value || "");
+      preview.textContent = next
+        ? "Превью: " + editorFormatDatePreview(next, nextFormat)
+        : "Превью появится после выбора даты";
+    });
+    const formatInput = formatControls.input;
     const preview = document.createElement("div");
     preview.className = "editor-inline-preview";
     const initialValue = String(field.value || "");
     preview.textContent = initialValue
-      ? "Превью: " + editorFormatDatePreview(initialValue, formatSelect.value)
+      ? "Превью: " + editorFormatDatePreview(initialValue, formatInput.value)
       : "Превью появится после выбора даты";
 
     dateInput.addEventListener("input", () => {
@@ -379,20 +438,12 @@ function editorBuildValueInput(field, index) {
       editorMarkDirty();
       const next = String(editorState.fields[index].value || "");
       preview.textContent = next
-        ? "Превью: " + editorFormatDatePreview(next, formatSelect.value)
-        : "Превью появится после выбора даты";
-    });
-    formatSelect.addEventListener("input", () => {
-      editorState.fields[index].format = formatSelect.value;
-      editorMarkDirty();
-      const next = String(editorState.fields[index].value || "");
-      preview.textContent = next
-        ? "Превью: " + editorFormatDatePreview(next, formatSelect.value)
+        ? "Превью: " + editorFormatDatePreview(next, formatInput.value)
         : "Превью появится после выбора даты";
     });
 
     controls.appendChild(editorBuildLabeledControl("Дата", dateInput));
-    controls.appendChild(editorBuildLabeledControl("Формат даты", formatSelect));
+    controls.appendChild(editorBuildLabeledControl("Формат даты", formatControls.root));
     wrapper.appendChild(controls);
     wrapper.appendChild(preview);
     return wrapper;
@@ -443,9 +494,9 @@ function editorRenderFields() {
     });
 
     const typeSelect = document.createElement("select");
-    const typeOptions = ENABLE_REFERENCE_TYPE
-      ? ["text", "multiline", "date", "reference", "number"]
-      : ["text", "multiline", "date", "number"];
+    let typeOptions = ["text", "multiline", "date"];
+    if (ENABLE_REFERENCE_TYPE) typeOptions.push("reference");
+    if (ENABLE_NUMBER_TYPE) typeOptions.push("number");
     for (const type of typeOptions) {
       const option = document.createElement("option");
       option.value = type;
